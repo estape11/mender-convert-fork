@@ -1,0 +1,40 @@
+TS7800V2_CONFIG="ts7800-v2"
+
+# Using u-boot integration
+MENDER_GRUB_EFI_INTEGRATION=n
+MENDER_ENABLE_PARTUUID=n
+
+# Mender AB configuration
+MENDER_STORAGE_DEVICE_BASE="/dev/tssdcarda"
+MENDER_BOOT_PART_NUMBER="1"
+MENDER_DATA_PART_NUMBER="4"
+MENDER_ROOTFS_PART_A_NUMBER="2"
+MENDER_ROOTFS_PART_B_NUMBER="3"
+
+MENDER_BOOT_PART_SIZE_MB="4"
+MENDER_DEVICE_TYPE="ts7800-v2"
+
+# Nothing to copy
+MENDER_COPY_BOOT_GAP=n
+
+# 4MB alignment
+MENDER_PARTITION_ALIGNMENT="4194304"
+
+# Binaries storage (final value might change)
+TS7800V2_BINARIES_URL="https://raw.githubusercontent.com/estape11/thinkipa-binaries/refs/heads/main/ts7800-v2"
+
+function platform_modify() {
+    mkdir -p work/ts7800-v2/binaries
+
+    run_and_log_cmd "wget -Nq ${TS7800V2_BINARIES_URL}/fw_env.config -P work/ts7800-v2"
+    run_and_log_cmd "wget -Nq ${TS7800V2_BINARIES_URL}/fw_printenv -P work/ts7800-v2"
+    run_and_log_cmd "wget -Nq ${TS7800V2_BINARIES_URL}/fw_setenv -P work/ts7800-v2"
+    run_and_log_cmd "wget -Nq ${TS7800V2_BINARIES_URL}/u-boot-spl.kwb -P work/ts7800-v2"
+
+    run_and_log_cmd "sudo install -m 755 work/ts7800-v2/fw_printenv work/rootfs/sbin/fw_printenv"
+    run_and_log_cmd "sudo install -m 755 work/ts7800-v2/fw_setenv work/rootfs/sbin/fw_setenv"
+    run_and_log_cmd "sudo cp  work/ts7800-v2/u-boot-spl.kwb work/boot"
+
+    run_and_log_cmd "sudo cp work/ts7800-v2/fw_env.config work/rootfs/etc/"
+    
+}
